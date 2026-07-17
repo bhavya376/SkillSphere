@@ -44,10 +44,11 @@ const Payments = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const payRes = await API.get("/payments");
+      const [payRes, conRes] = await Promise.all([
+        API.get("/payments"),
+        API.get("/contracts")
+      ]);
       setPayments(payRes.data.payments || []);
-
-      const conRes = await API.get("/contracts");
       setContracts(conRes.data.contracts || []);
     } catch (err) {
       console.error("Failed to load payments data:", err);

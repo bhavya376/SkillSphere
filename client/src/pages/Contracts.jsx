@@ -67,14 +67,14 @@ const Contracts = () => {
   const fetchContractsAndPayments = async () => {
     try {
       setLoading(true);
-      const conRes = await API.get("/contracts");
+      const [conRes, payRes, revRes] = await Promise.all([
+        API.get("/contracts"),
+        API.get("/payments"),
+        API.get("/reviews")
+      ]);
       const contractsData = conRes.data.contracts || [];
       setContracts(contractsData);
-
-      const payRes = await API.get("/payments");
       setPayments(payRes.data.payments || []);
-
-      const revRes = await API.get("/reviews");
       setReviews(revRes.data.reviews || []);
 
       // Load submissions for each contract

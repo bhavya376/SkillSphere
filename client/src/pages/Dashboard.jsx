@@ -67,74 +67,64 @@ const Dashboard = () => {
       setLoading(true);
       setError(false);
       
-      // Freelancer profile loading
-      if (user.role === "freelancer") {
-        try {
-          const res = await API.get("/freelancers/me");
-          setProfile(res.data.profile);
-        } catch (err) {
-          if (err.response?.status === 404) {
-            setProfile(null);
-          } else {
-            console.error("Error loading freelancer profile:", err);
-          }
-        }
-      } else if (user.role === "client") {
-        try {
-          const res = await API.get("/clients/me");
-          setProfile(res.data.client);
-        } catch (err) {
-          if (err.response?.status === 404) {
-            setProfile(null);
-          } else {
-            console.error("Error loading client profile:", err);
-          }
-        }
-      }
+      const profilePromise = user.role === "freelancer"
+        ? API.get("/freelancers/me").then(res => res.data.profile).catch(err => {
+            if (err.response?.status !== 404) console.error("Error loading freelancer profile:", err);
+            return null;
+          })
+        : API.get("/clients/me").then(res => res.data.client).catch(err => {
+            if (err.response?.status !== 404) console.error("Error loading client profile:", err);
+            return null;
+          });
+
+      const gigsPromise = API.get("/gigs").then(res => res.data.gigs);
+      const proposalsPromise = API.get("/proposals").then(res => res.data.proposals);
+      const contractsPromise = API.get("/contracts").then(res => res.data.contracts);
+      const conversationsPromise = API.get("/chat/conversations").then(res => res.data.conversations || []).catch(err => {
+        console.error("Error fetching conversations in dashboard:", err);
+        return [];
+      });
+
+      const [profileData, gigsData, proposalsData, contractsData, conversationsData] = await Promise.all([
+        profilePromise,
+        gigsPromise,
+        proposalsPromise,
+        contractsPromise,
+        conversationsPromise
+      ]);
+
+      setProfile(profileData);
       setProfileChecked(true);
+      setGigs(gigsData);
+      setProposals(proposalsData);
+      setContracts(contractsData);
+      setConversations(conversationsData);
 
-      // Fetch Gigs, Proposals, and Contracts
-      const gigsRes = await API.get("/gigs");
-      setGigs(gigsRes.data.gigs);
-
-      if (user.role === "client") {
-        const myGig = gigsRes.data.gigs.find((g) => g.client?.user?._id === user._id || g.client?.user === user._id);
+      if (user.role === "client" && gigsData) {
+        const myGig = gigsData.find((g) => g.client?.user?._id === user._id || g.client?.user === user._id);
         if (myGig && myGig.client) {
           setProfile(myGig.client);
         }
       }
-
-      const proposalsRes = await API.get("/proposals");
-      setProposals(proposalsRes.data.proposals);
-
-      const contractsRes = await API.get("/contracts");
-      setContracts(contractsRes.data.contracts);
-
-      if (user.role === "freelancer") {
-        try {
-          setLoadingRecommendations(true);
-          const recRes = await API.get("/recommendations");
-          setRecommendations(recRes.data.recommendations || []);
-          setProfileIncomplete(recRes.data.profileIncomplete || false);
-        } catch (recErr) {
-          console.error("Error loading recommendations:", recErr);
-        } finally {
-          setLoadingRecommendations(false);
-        }
-      }
-
-      try {
-        const conversationsRes = await API.get("/chat/conversations");
-        setConversations(conversationsRes.data.conversations || []);
-      } catch (chatErr) {
-        console.error("Error fetching conversations in dashboard:", chatErr);
-      }
-
     } catch (err) {
       console.error("Dashboard data fetch error:", err);
       setError(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    if (!user || user.role !== "freelancer") return;
+    try {
+      setLoadingRecommendations(true);
+      const recRes = await API.get("/recommendations");
+      setRecommendations(recRes.data.recommendations || []);
+      setProfileIncomplete(recRes.data.profileIncomplete || false);
+    } catch (recErr) {
+      console.error("Error loading recommendations:", recErr);
+    } finally {
+      setLoadingRecommendations(false);
     }
   };
 
@@ -148,6 +138,7 @@ const Dashboard = () => {
       return;
     }
     checkProfileAndFetchData();
+    fetchRecommendations();
   }, [user, navigate]);
 
   const validatePostGigField = (name, value) => {

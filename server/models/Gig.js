@@ -6,6 +6,7 @@ const gigSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Client",
       required: true,
+      index: true,
     },
 
     title: {
@@ -22,6 +23,7 @@ const gigSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
+      index: true,
     },
 
     skills: [
@@ -44,12 +46,15 @@ const gigSchema = new mongoose.Schema(
       type: String,
       enum: ["Open", "In Progress", "Completed", "Cancelled"],
       default: "Open",
+      index: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+gigSchema.index({ createdAt: -1 });
 
 const Gig = mongoose.model("Gig", gigSchema);
 

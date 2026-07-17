@@ -6,6 +6,7 @@ const notificationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
     title: {
@@ -27,6 +28,7 @@ const notificationSchema = new mongoose.Schema(
     isRead: {
       type: Boolean,
       default: false,
+      index: true,
     },
   },
   {

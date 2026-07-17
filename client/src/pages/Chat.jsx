@@ -44,10 +44,12 @@ const Chat = () => {
   useEffect(() => {
     if (!user) return;
 
-    socket.auth = {
-      token: localStorage.getItem("token")
-    };
-    socket.connect();
+    if (!socket.connected) {
+      socket.auth = {
+        token: localStorage.getItem("token")
+      };
+      socket.connect();
+    }
     socket.emit("join");
 
     const handleReceiveMessage = (data) => {
@@ -103,7 +105,6 @@ const Chat = () => {
       socket.off("user_status", handleUserStatus);
       socket.off("typing", handleTyping);
       socket.off("stop_typing", handleStopTyping);
-      socket.disconnect();
     };
   }, [user, activeConversation]);
 

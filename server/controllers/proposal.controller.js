@@ -73,7 +73,8 @@ export const getAllProposals = asyncHandler(async (req, res) => {
   const proposals = await Proposal.find()
     .populate("gig")
     .populate("freelancer")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   return res.status(200).json({
     success: true,
@@ -85,7 +86,8 @@ export const getAllProposals = asyncHandler(async (req, res) => {
 export const getProposalById = asyncHandler(async (req, res) => {
   const proposal = await Proposal.findById(req.params.id)
     .populate("gig")
-    .populate("freelancer");
+    .populate("freelancer")
+    .lean();
 
   if (!proposal) {
     throw new ApiError(404, "Proposal not found");
@@ -216,17 +218,19 @@ export const acceptProposal = asyncHandler(async (req, res) => {
     }
 
     // Notify auto-rejected freelancers
-    for (const otherProp of otherProposals) {
-      const otherFreelancer = await Freelancer.findById(otherProp.freelancer);
-      if (otherFreelancer) {
-        await createNotification({
-          recipient: otherFreelancer.user,
-          type: "proposal",
-          title: "Proposal Closed",
-          message: `The gig "${gig.title}" has accepted another bid.`
-        });
-      }
-    }
+    const otherFreelancers = await Freelancer.find({
+      _id: { $in: otherProposals.map((p) => p.freelancer) }
+    }).select("user").lean();
+
+    const notifPromises = otherFreelancers.map((otherFreelancer) => {
+      return createNotification({
+        recipient: otherFreelancer.user,
+        type: "proposal",
+        title: "Proposal Closed",
+        message: `The gig "${gig.title}" has accepted another bid.`
+      }).catch((err) => console.error("Notification failed for auto-reject:", err.message));
+    });
+    await Promise.all(notifPromises);
   } catch (notifErr) {
     console.error("Proposal accept notifications failed:", notifErr.message);
   }

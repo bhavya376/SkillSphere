@@ -28,7 +28,7 @@ export const calculateJobMatches = async (freelancer, gigs) => {
             Authorization: `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
             "Content-Type": "application/json"
           },
-          timeout: 8000
+          timeout: 4000
         }
       );
 

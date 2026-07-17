@@ -82,7 +82,8 @@ export const getAllContracts = asyncHandler(async (req, res) => {
     .populate({
       path: "freelancer",
       populate: { path: "user", select: "name email" }
-    });
+    })
+    .lean();
 
   return res.status(200).json({
     success: true,
@@ -101,7 +102,8 @@ export const getContractById = asyncHandler(async (req, res) => {
     .populate({
       path: "freelancer",
       populate: { path: "user", select: "name email" }
-    });
+    })
+    .lean();
 
   if (!contract) {
     throw new ApiError(404, "Contract not found");

@@ -6,18 +6,21 @@ const contractSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Proposal",
       required: true,
+      index: true,
     },
 
     client: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Client",
       required: true,
+      index: true,
     },
 
     freelancer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Freelancer",
       required: true,
+      index: true,
     },
 
     startDate: {
@@ -38,6 +41,7 @@ const contractSchema = new mongoose.Schema(
       type: String,
       enum: ["Active", "Submitted", "Revision Requested", "Completed", "Cancelled", "Disputed"],
       default: "Active",
+      index: true,
     },
   },
   {

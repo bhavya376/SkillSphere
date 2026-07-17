@@ -7,7 +7,7 @@ import ApiError from "../utils/ApiError.js";
 
 export const getRecommendations = asyncHandler(async (req, res) => {
   // 1. Find user's Freelancer profile
-  const freelancer = await Freelancer.findOne({ user: req.user._id });
+  const freelancer = await Freelancer.findOne({ user: req.user._id }).lean();
   if (!freelancer) {
     throw new ApiError(404, "Freelancer profile not found. Please create one to view matches.");
   }
@@ -23,10 +23,10 @@ export const getRecommendations = asyncHandler(async (req, res) => {
   }
 
   // 3. Fetch real open gigs (populating client for hyperlocal matching)
-  const openGigs = await Gig.find({ status: "Open" }).populate("client");
+  const openGigs = await Gig.find({ status: "Open" }).populate("client").lean();
 
   // 4. Fetch already bidded gigs to exclude them
-  const userProposals = await Proposal.find({ freelancer: freelancer._id });
+  const userProposals = await Proposal.find({ freelancer: freelancer._id }).lean();
   const appliedGigIds = userProposals.map(p => p.gig.toString());
 
   const eligibleGigs = openGigs.filter(gig => !appliedGigIds.includes(gig._id.toString()));

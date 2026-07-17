@@ -77,7 +77,8 @@ export const getAllGigs = asyncHandler(async (req, res) => {
       path: "client",
       populate: { path: "user", select: "name email avatar" }
     })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   return res.status(200).json({
     success: true,
@@ -91,7 +92,8 @@ export const getGigById = asyncHandler(async (req, res) => {
     .populate({
       path: "client",
       populate: { path: "user", select: "name email avatar" }
-    });
+    })
+    .lean();
 
   if (!gig) {
     throw new ApiError(404, "Gig not found");

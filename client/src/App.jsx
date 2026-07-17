@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { PageLoader } from "./components/SkeletonLoaders";
 import { Sidebar } from "./components/ui";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import socket from "./socket";
 
 // Lazy-load page components
 const Landing = lazy(() => import("./pages/Landing"));
@@ -35,6 +36,19 @@ function App() {
       dispatch(getMe());
     }
   }, [dispatch, token, user]);
+
+  useEffect(() => {
+    if (user) {
+      socket.auth = { token: localStorage.getItem("token") || token };
+      socket.connect();
+      socket.emit("join");
+    } else {
+      socket.disconnect();
+    }
+    return () => {
+      socket.disconnect();
+    };
+  }, [user, token]);
 
   return (
     <Router>
