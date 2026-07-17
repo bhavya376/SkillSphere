@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment variables / Secrets
+.env
+.env.*
+!.env.example
+client/.env
+server/.env
+
+# Build output
+dist/
+client/dist/
+server/dist/
+
+# Temporary files
+tmp/
+
+# Logs
+*.log
+npm-debug.log*
